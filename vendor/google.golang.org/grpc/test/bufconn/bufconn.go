@@ -21,7 +21,6 @@
 package bufconn
 
 import (
-	"context"
 	"fmt"
 	"io"
 	"net"
@@ -87,17 +86,8 @@ func (l *Listener) Addr() net.Addr { return addr{} }
 // providing it the server half of the connection, and returns the client half
 // of the connection.
 func (l *Listener) Dial() (net.Conn, error) {
-	return l.DialContext(context.Background())
-}
-
-// DialContext creates an in-memory full-duplex network connection, unblocks Accept by
-// providing it the server half of the connection, and returns the client half
-// of the connection.  If ctx is Done, returns ctx.Err()
-func (l *Listener) DialContext(ctx context.Context) (net.Conn, error) {
 	p1, p2 := newPipe(l.sz), newPipe(l.sz)
 	select {
-	case <-ctx.Done():
-		return nil, ctx.Err()
 	case <-l.done:
 		return nil, errClosed
 	case l.ch <- &conn{p1, p2}:
